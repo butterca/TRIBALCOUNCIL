@@ -1,5 +1,6 @@
-
-//Initializing Firebase
+//=========================================================================================
+//=============================Initializing Firebase=======================================
+//=========================================================================================
   var config = {
     apiKey: "AIzaSyBYFOuocBhI3ZMa34HTQQ3OG5iDfItdSS4",
     authDomain: "mywebapp-7bc86.firebaseapp.com",
@@ -12,13 +13,38 @@
 
 var firestore = firebase.firestore();
 
+
+
+
+
+
+
+
+
+
+
+//=========================================================================================
+//=============================Creating References to Database===============================
+//=========================================================================================
 //Reference to Room
-const docRef1 = firestore.collection("Room1");
+//const docRef1 = firestore.collection("Room1");
 
-//Reference to Page Number
-const docRefR = firestore.collection("PageNumber").doc("CurrentPage");
+////Reference to Page Number
+//const docRefR = firestore.collection("PageNumber").doc(playerR);
 
-//==========================HTMLTEXTS/BUTTONS=================//
+
+
+
+
+
+
+
+
+
+
+//=========================================================================================
+//=================================HTMLTEXTS/BUTTONS=======================================
+//=========================================================================================
 //Output room# and Input room#
 const roomNumberShown = document.querySelector("#roomNumberShown");
 const roomID = document.querySelector("#roomID");
@@ -37,6 +63,20 @@ const response = document.getElementById("response");
 //Player Score Number
 const score = document.getElementById("score");
 
+
+
+
+
+
+
+
+
+
+
+
+//=========================================================================================
+//========================================LOCAL/GLOBAL VARIABLES===================================
+//=========================================================================================
 // SMART TO SAVE EACH PLAYERS DATA GLOBALLY AND RE-ACCESS IT
 // BETTER THAN COOKIES FOR SURE
 
@@ -50,16 +90,36 @@ var localPlayerName;
 var localPlayerNumber;
 
 //USERS SCORE
+var playerScore = 0;
 
 //USERS ROOM
-
+var playerRoom;
 
 // VARIABLE CURRENT PAGE = 0, then after they enter increment
+var currentPage = 0;
 
-// WHERE FUNCTIONS ARE CALLED in order...
-setupQuestion();
+//ANSWERS
+//for response question
+var currentResponseAnswer;
+var correctResponseAnswer;
+//for trivia question
+var currentTriviaAnswer;
+var correctTriviaAnswer;
 
-//=========================BUTTON CLICKS===================//
+
+
+
+
+
+
+var docRefR;
+//.doc(window.playerRoom);
+
+
+
+//================================================================================================
+//==========================================SETUP ROOM/GAME==========================================
+//=================================================================================================
 //JOIN ROOM BUTTON CLICK
 //First - save the room# input and playerName input to firestore
 //Second - put the room# and playerName at the top of the screen
@@ -67,6 +127,8 @@ setupQuestion();
 //Fourth - call the changeQuestion function
 //         ...this function gets a question from the database and displays it
 //          ...this function also unblocks a text entry and button to collect responses
+//var docRef1;
+
 joinRoom.addEventListener("click", function(){
     const roomToSave = roomID.value;
     const playerToSave = playerName.value;
@@ -83,15 +145,34 @@ joinRoom.addEventListener("click", function(){
 //         console.log("room size = " + roomSize);
 //            });
     // Should call check room size in update probably
+    window.playerRoom = roomToSave;
+    
+    docRefR = firestore.collection("PageNumber").doc(window.playerRoom);
     
 
-    localPlayerNumber = roomSize;
+    window.localPlayerNumber = roomSize;
+    
+    console.log("ROOM SETUP AS # " + roomToSave);
+    
+    //SET PAGE NUMBER DOCUMENT
+//    
+//    firestore.collection(roomToSave).doc(roomToSave).set({
+//        pageNumber: currentPage
+//    }).then(function(){
+//    
+//        
+//
+//    }).catch(function(error){
+//        console.error("Got an error: ", error);
+//    });
+//    
+    
+    //docRef1 = docRef1.collection(roomToSave);
 
-
-    docRef1.doc(playerToSave).set({
+    firestore.collection(roomToSave).doc(playerToSave).set({
         playerName: playerToSave,
-        playerNumber: roomToSave,
-        roomNumber: "1",
+        playerNumber: roomSize,
+        roomNumber: roomToSave,
         score: 0.0
     }).then(function(){
         //SAVE THE COOKIE!!!
@@ -104,7 +185,7 @@ joinRoom.addEventListener("click", function(){
 
         document.cookie = "playerNumber" + "=" + roomToSave + ";"
 
-        console.log("Document written with Room ID: ", docRef1.id);
+        //console.log("Document written with Room ID: ", docRef1.id);
         playerNameShown.innerHTML = "Name: " + playerToSave;
         roomNumberShown.innerHTML = "Room #: 1";
 
@@ -130,9 +211,14 @@ joinRoom.addEventListener("click", function(){
 
 
          //CHANGING PAGE NUMBER IF LAST PLAYER Joins
-            firestore.collection("Room1").get().then(res => {
+            firestore.collection(roomToSave).get().then(res => {
             console.log(res.size);
             if(res.size ==  "5"){
+                //CHANGE CURRENT PAGE NUMBER
+                
+                //nextPage();
+                window.currentPage += 1;
+                
                  docRefR.set({
                         pageNumber: 1
                     }).catch(function(error){
@@ -144,7 +230,7 @@ joinRoom.addEventListener("click", function(){
             });
 
 
-
+        getRealtimeUpdates();
 
 
 //        var r = document.getElementById("response");
@@ -175,7 +261,21 @@ joinRoom.addEventListener("click", function(){
 
 })
 
-//========================FUNCTIONS=============================//
+
+
+
+
+
+
+
+
+
+//================================================================================================
+//==============================================FUNCTIONS==========================================
+//==============================================================================================
+
+//======================================QUESTION SETUP=========================================
+
 //setting up the Question stuff
 function setupQuestion(){
                 //getting stuff from html body
@@ -201,6 +301,7 @@ function setupQuestion(){
                 qo5.style.display = "none";
                 console.log("im getting in");
                 }
+
 //HIDING THE QUESTION STUFF
 function doSomething(){
     var q = document.getElementById("questionOutput");
@@ -212,8 +313,9 @@ function doSomething(){
     sr.style.display = "none";
 }
 
-//GETTING A RESPONSE QUESTION
 
+//====================================RESPONSE QUESTION============================================
+//GETTING A RESPONSE QUESTION
 function getResponseQuestion(){
     
 //    var q = document.getElementById("questionOutput");
@@ -250,6 +352,13 @@ function getResponseQuestion(){
                 //Save question WITH COOKIE
                 document.cookie = "question" + "=" + questionName.question + ";"
                 questionOutput.innerText = questionName.question;
+                
+            //save question answer
+                
+                correctResponseAnswer = questionName.answer;
+                
+                console.log("THE CURRENTQA IS " + correctResponseAnswer);
+                
             }else{
                 console.log("no such");
             }
@@ -258,18 +367,17 @@ function getResponseQuestion(){
         });
     }
 
-
-//SUBMIT RESPONSE BUTTON CLICK
-// saves the question output and response in the
-// questions response collection which containes multiple
-// players responses by getting cookies
-//
+//SUBMIT RESPONSE BUTTON
 submitResponse.addEventListener("click", function(){
 
     const questionToSave = questionOutput.value;
 
     const responseToSave = response.value;
+    
+    //save current Player Answer
+    currentResponseAnswer = responseToSave;
 
+    console.log("I am saving the latest player Answer!! ASSSSSS " + currentResponseAnswer);
 
     var rsp = document.getElementById("response");
     var srb = document.getElementById("submitResponse");
@@ -321,7 +429,7 @@ submitResponse.addEventListener("click", function(){
 
     firestore.collection("questions").doc("FirstQuestion").collection("responses").get().then(res => {
             console.log(res.size);
-            if(res.size ==  "5"){
+            if(res.size ==  "1"){
                  docRefR.set({
                         pageNumber: 2
                     }).catch(function(error){
@@ -340,19 +448,19 @@ questionOutput.innerText = "waiting for others to answer";
     
     
     //Change page when everyone answers
-    
-     firestore.collection("questions").doc("FirstQuestion").collection("responses").get().then(res => {
-            console.log(res.size);
-            if(res.size > 1){
-                 docRefR.set({
-                        pageNumber: 3
-                    }).catch(function(error){
-                        console.error("got an error", error);
-                    });
-            }else{
-                console.log("room size = " + res.size);
-            }
-            });
+//    
+//     firestore.collection("questions").doc("FirstQuestion").collection("responses").get().then(res => {
+//            console.log(res.size);
+//            if(res.size > 1){
+//                 docRefR.set({
+//                        pageNumber: 3
+//                    }).catch(function(error){
+//                        console.error("got an error", error);
+//                    });
+//            }else{
+//                console.log("room size = " + res.size);
+//            }
+//            });
 
     
     
@@ -364,9 +472,70 @@ questionOutput.innerText = "waiting for others to answer";
 
 })
 
+
+//CHECK ANSWER OF RESPONSE QUESTION
+function checkResponseAnswer(){
+
+    console.log("latest player answer = " + currentResponseAnswer);
+    console.log("current question answer = " + correctResponseAnswer)
+    
+    if(currentResponseAnswer == correctResponseAnswer){
+        
+        // change current local score and display it
+        playerScore = playerScore + 10;
+        
+        
+        
+        //change the player score in database
+          firestore.collection("Room1").doc(localPlayerName).update({
+                        score: playerScore
+                    }).catch(function(error){
+                        console.error("got an error", error);
+                    });
+    
+        //change the player score displayed on site
+        score.innerText = playerScore;
+        
+        
+        //next page
+        nextPage();
+        
+        
+    }else{
+        //ELIMINATED
+        //TAKE THEM TO VIEWING SCREEN
+        
+    //or next page for now
+        nextPage();
+        
+        
+    }
+    
+
+    
+    alert("time has elapsed, response has been submitted");
+    
+//    firestore.collection("PageNumber").doc("CurrentPage").update({
+//                        pageNumber: 2
+//                    }).catch(function(error){
+//                        console.error("got an error", error);
+//                    });
+//    
+    
+    
+    
+
+}
+
+
+
+//CLEARING TEXT FIELD
 function ClearField() {
      document.getElementById("response").value = "";
 }
+
+
+//===================================UNUSED QSTUFF=======================================
 
 //GETTING A SPECIAL QUESTION
 function getSpecialQuestion(){
@@ -394,9 +563,6 @@ function getSpecialQuestion(){
 }
 
 //ASKING EVERYONE WHOSE DOING WHAT THIS WEEKEND
-//Whose ____ this weekend
-//X,Y,Z
-//function getGeneratedQuestion(){
 function getGeneratedQuestion(n){
 
      var q = document.getElementById("questionOutput");
@@ -545,7 +711,6 @@ function getGeneratedQuestion(n){
 
 }
 
-
 //GETTING PLAYER SCORE
 function getPlayerScore(){
 
@@ -569,6 +734,7 @@ function getPlayerScore(){
         })
 
 }
+
 //GETTING A MC QUESTION
 function getMCQuestion(n){
 //    var r = document.getElementById("response");
@@ -734,6 +900,7 @@ function getMCQuestion(n){
     //setTimeout(donothing,500);
 
 }
+
 //GETTING A COOKIE
 function getCookie(cname) {
   var name = cname + "=";
@@ -751,11 +918,15 @@ function getCookie(cname) {
   return "";
 }
 
+
+//====================================SPECIAL MC QUESTION===================================
+
 //THERE NEEDS TO BE A GET MCQUESTIONBUTTONRESPONSEMETHOD
 
+
+//=======================================TRIVIA QUESTION===================================
 //GET TRIVIA QUESTIONS IN ORDER
 var correctAnswer;
-
 function getTriviaQuestion(i){
 
     //console.log("what is i? " + i);
@@ -782,11 +953,16 @@ function getTriviaQuestion(i){
     docRefTQ.get().then(function(doc){
             if(doc.exists){
                 const questionName = doc.data();
+                
+                correctTriviaAnswer = questionName.correctAnswer;
 
                 console.log("the doc data IS HERE= ", questionName.question);
                 //Save question WITH COOKIE
-                document.cookie = "question" + "=" + questionName.question + ";";
+                //document.cookie = "question" + "=" + questionName.question + ";";
                 console.log("set question next");
+                
+                
+                
                 questionOutput.innerText = questionName.question;
                 questionOption1.innerText = questionName.option1;
                 questionOption2.innerText = questionName.option2;
@@ -794,29 +970,34 @@ function getTriviaQuestion(i){
 
                 console.log("in firestore the correct answer is " + questionName.correctAnswer);
 
-                correctAnswer = questionName.correctAnswer;
+                //correctAnswer = questionName.correctAnswer;
 
                 // SAVE CORRECT ANSWER AS A COOKIE..
                 //document.cookie = "correctAnswer" + "=" + correctAnswer + ";";
 
                 //make sure its working
-                console.log("the correct answer is saved as" + correctAnswer);
+                console.log("the correct answer is saved as" + correctTriviaAnswer);
 
 
             }else{
+                
+                
                 console.log("no such");
             }
         }).catch(function(error){
             console.log("error", error);
         });
 
-    console.log("the correct answer is saved asssssss " + correctAnswer);
+    console.log("the correct answer is saved fagghajjj" + correctTriviaAnswer);
 
 
     //Question Button Options
 
     questionOption1.addEventListener("click", function(){
 
+        
+        
+       
         //getPlayerScore();
         //Updating score
 //        firestore.collection("Room1").doc(p.toString()).update({
@@ -827,17 +1008,26 @@ function getTriviaQuestion(i){
 //            console.log("score changed to: ");
         //questionOption1.style.color = "black";
         var curColor = questionOption1.style.backgroundColor;
+         console.log("THE CURRENT COLOR IS" + questionOption1.style.backgroundColor);
+        
+        
         if((curColor != 'red') || (curColor == 'grey')){
+            
         questionOption1.style.background = "red";
         curColor = 'red';
+            
+            console.log("SET IT TO fuKIN RED");
         }
         else if(curColor == 'red'){
         questionOption1.style.background = "grey";
         }
+        else{
+            //questionOption1.style.background = "transparent";
+        }
 
         console.log("option 1 selected");
 
-        console.log("selected " + questionOption1.innerText + " and correct answer is " + correctAnswer);
+        console.log("selected " + questionOption1.innerText + " and correct answer is " + correctTriviaAnswer);
 
     });
 
@@ -854,6 +1044,9 @@ function getTriviaQuestion(i){
         }
         else if(curColor == 'red'){
         questionOption2.style.background = "grey";
+        }
+        else{
+        
         }
 
     });
@@ -926,50 +1119,130 @@ function getTriviaQuestion(i){
 
     // FUCK AROUND
     //setTimeout(getTriviaQuestion(2), 10000);
+    
+    
+    
+    //checkTriviaAnswer();
 
 
 }
 
 //NEW FUNCTIONS AND FEATURES
 
-//Waits 30 seconds before checking responses/submitting responses
+//CHECK ANSWER OF TRIVIA QUESTION
+function checkTriviaAnswer(){
 
-function checkAnswer(){
 
-//    var p = getCookie("playerName");
-//    var pNum = getCookie("playerNumber");
-//    firestore.collection("questions").doc("FirstQuestion").collection("responses").doc(playerName.toString()).set({
-//        response: responseToSave,
-//        playerName: playerName,
-//        playerNumber: "22",
-//        roomNumber: "1"
+    //CHECK TO SEE WHAT OPTION IS HIGHLIGHTED AND SEE IF THE OPTION TEXT MATCHES THE ANSWER TEXT
+//    firestore.collection("questions").doc("1").get().then(function(doc){
+//            if(doc.exists){
+//                const questionData = doc.data();
+//                
+//                correctTriviaAnswer = questionData.answer;
+//                
+//                console.log("WHAT THEP FUCK IS HAPPENING" + " THE CORRECT TRIVIA " + correctTriviaAnswer);
+//
+//            }else{
+//                console.log("no such");
+//            }
 //        }).catch(function(error){
-//        console.error("Got an error: ", error);
-//    });
+//            console.log("error", error);
+//        });
+//    
+//    
+    if((questionOption1.innerText == correctTriviaAnswer) && (questionOption1.style.backgroundColor == 'red')){
+        playerScore += 10;
+        
+        console.log("SCORREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEee");
+        changePlayerScore();
+        
+        nextPage();
+        
+    }
+    else if(questionOption2.innerText == correctTriviaAnswer){
+        
+    }
+    else if(questionOption2.innerText == correctTriviaAnswer){
+        
+    }
+    else{
+        console.log("FUCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK");
+        //ELIMINATED
+        //TAKE THEM TO VIEWING SCREEN
+        
+        nextPage();
+    }
+    
+    
     
     alert("time has elapsed, response has been submitted");
-    firestore.collection("PageNumber").doc("CurrentPage").update({
-                        pageNumber: 2
-                    }).catch(function(error){
-                        console.error("got an error", error);
-                    });
+    
+//    currentPage = currentPage +1;
+//    firestore.collection("PageNumber").doc("CurrentPage").update({
+//                        pageNumber: 2
+//                    }).catch(function(error){
+//                        console.error("got an error", error);
+//                    });
+    
+    
+    
+    //HIDE ALL TRIVIA STUFF
+    var qO1 = document.getElementById("questionOption1");
+    qO1.style.display = "none";
+    var qO2 = document.getElementById("questionOption2");
+    qO2.style.display = "none";
+    var qO3 = document.getElementById("questionOption3");
+    qO3.style.display = "none";
+    
+    
+    
+    //RESET COLORS
+    qO1.style.backgroundColor = 'initial';
+        qO2.style.backgroundColor = 'initial';
+        qO3.style.backgroundColor = 'initial';
 
 }
 
-// PIC STUFF
 
+// ======================= NEW GET/CHECK MC QUESTION ====================================
+
+
+
+
+//======================================PLAYER SCORE=============================================
+
+function changePlayerScore(){
+    
+        console.log("PLAYER SCORE ISSSS " + playerScore);
+        //change the player score in database
+          firestore.collection(playerRoom).doc(localPlayerName).update({
+                        score: playerScore
+                    }).catch(function(error){
+                        console.error("got an error", error);
+                    });
+    
+        //change the player score displayed on site
+        score.innerText = playerScore;
+        
+}
+
+
+//==============================================PIC STUFF=========================================
+// UPLOADING PICS TO DATABASE
 var fileButton = document.getElementById('fileButton');
-
 var uploader = document.getElementById('uploader');
-
+var picName;
 fileButton.addEventListener('change', function(e){
     //get file
 
     var file = e.target.files[0];
 
     //create storage ref
-    var storageRef = firebase.storage().ref('idk/' + file.name);
+    var storageRef = firebase.storage().ref(playerRoom + '/' + localPlayerName + '/' + file.name);
 
+    //save file name
+    picName = file.name;
+    
     //upload file
 
     var task = storageRef.put(file);
@@ -989,19 +1262,20 @@ fileButton.addEventListener('change', function(e){
            );          
                             });
 
-var showPic = document.getElementById('showPic');
 
+// DISPLAYING PICS FROM DATABASE
+var showPic = document.getElementById('showPic');
 showPic.addEventListener("click", function(){
 
     var storage2 = firebase.storage();
 
     var storage2Ref = storage2.ref();
-    var spaceRef = storage2Ref.child('idk/chasecivica.png');
+    var spaceRef = storage2Ref.child(playerRoom + '/' + localPlayerName + '/' + picName);
 
     console.log("made it into showpic function");
 
             // Get the download URL
-        storage2Ref.child('idk/chasecivica.png').getDownloadURL().then(function(url) {
+        storage2Ref.child(playerRoom + '/' + localPlayerName + '/' + picName).getDownloadURL().then(function(url) {
           // Insert url into an <img> tag to "download"
             var test = url;
             document.getElementById('img').src = test;
@@ -1010,89 +1284,143 @@ showPic.addEventListener("click", function(){
         });
 });
 
-//RESETS TO PAGE 0 if window is closed
-//window.onbeforeunload = closingCode;
-window.onbeforeunload = confirmExit;
 
-function confirmExit(){
+
+
+
+
+
+
+
+
+
+
+
+//=========================================================================================
+// ====================================PAGE UPDATING STUFF ================================
+//=========================================================================================
+
+setupQuestion();  
+
+
+//NEXT PAGE FUNCTION
+function nextPage(){
+  
+    currentPage += 1;
     
-    alert("confirm exit is being called");
-
-    firestore.collection("PageNumber").doc("CurrentPage").update({
-                        pageNumber: 0
+    
+    console.log("CHANGING CURRENT PAGE HEREEE TO " + currentPage);
+        firestore.collection("PageNumber").doc(window.playerRoom).update({
+                        pageNumber: currentPage
                     }).catch(function(error){
                         console.error("got an error", error);
                     });
-    return false;
+    
 }
 
-// ======================= UPDATING =========================== //
-getRealtimeUpdates = function () {
-    docRefR.onSnapshot( function(doc){
-        updateScreen(doc);
-    });
-}
-
+//CHANGING PAGE NUMBER
 function updateScreen(doc){
     //console.log("here35");
     var i = 0;
     if(doc && doc.exists){
         const myData = doc.data();
         //console.log("here2");
-
-        
+    console.log("MADE IT INTO THE DOCUMENTTTTT");
          
 
         // WHERE IT TRACKS ROOM SIZE
-        firestore.collection("Room1").get().then(res => {
+        firestore.collection(playerRoom).get().then(res => {
             console.log("firt room size print is " + res.size);
 
             roomSize = res.size;
 
          console.log("room size = " + roomSize);
             });
+        
+        // WHERE CURRENT ANSWERS ARE CALCULATED
+        
+        
 
        
         // WHERE PAGE NUMBER IS TRACKED
         if(myData.pageNumber == 1){
-            console.log("page 1");
+            console.log("MADE IT INTO UPDATE W/page 1");
+            
             
             i = 1;
             //for(i = 0; i < 10; i++){
-                getTriviaQuestion(i);
-            //}
+            getTriviaQuestion(i);
+
+            setTimeout(checkTriviaAnswer, 12000);
             
-            setTimeout(checkAnswer, 12000);
         }
         else if(myData.pageNumber == 2){
             //RESET TIMER
             document.getElementById("progressBar").value = 0;
 
             getResponseQuestion();
+            
+            
+            setTimeout(checkResponseAnswer, 12000);
+    
         }
         else if(myData.pageNumber == 3){
             
+            document.getElementById("progressBar").value = 0;
+
+            getTriviaQuestion(2);
+            
+            setTimeout(checkTriviaAnswer, 12000);
+            
+    }
+          else if(myData.pageNumber == 4){
             
             document.getElementById("progressBar").value = 0;
 
-            getTriviaQuestion(3);
+            //getTriviaQuestion(3);
             
-            setTimeout(checkAnswer, 12000);
+            //setTimeout(checkTriviaAnswer, 12000);
+            
+    }
+          else if(myData.pageNumber == 5){
+            
+            document.getElementById("progressBar").value = 0;
+
+            //getTriviaQuestion(3);
+            
+            //setTimeout(checkTriviaAnswer, 12000);
             
     }
 }
 }
 
-//console.log("heregha");
+
+getRealtimeUpdates = function () {
+    console.log("MADE IT INTO REALTIMEEE");
+    //if(docRefR != null){
+        //console.log("MADE IT before update screen");
+        console.log("DocRefR = " + playerRoom);
+    //if(playerRoom != 0){
+    
+    docRefR.onSnapshot( function(doc){
+        console.log("MADE IT INTO update screen");
+        updateScreen(doc);
+    });
+    //}
+//}
+}
+console.log("heregha");
+
+if(playerRoom != null){
 getRealtimeUpdates();
+}
 
-
-//RESET FIRESTORE TO PAGE 0
+//RESET FIRESTORE TO PAGE 0 on EXIT
 window.onbeforeunload = confirmExit;
 
 function confirmExit(){
     alert("confirm exit is being called");
-    firestore.collection("PageNumber").doc("CurrentPage").update({
+    firestore.collection("PageNumber").doc(playerRoom).update({
                         pageNumber: 0
                     }).catch(function(error){
                         console.error("got an error", error);
