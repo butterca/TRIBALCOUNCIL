@@ -26,25 +26,40 @@
 
 
         <button id="submitResponse">Submit Response! </button>
-        <button id="questionOption1">Option 1</button>
-        <button id="questionOption2">Option 2</button>
-        <button id="questionOption3">Option 3</button>
+        <button id="questionOption1" onclick = "return checkMCAnswer(this.id);">Option 1</button>
+        <button id="questionOption2" onclick = "return checkMCAnswer(this.id);">Option 2</button>
+        <button id="questionOption3" onclick = "return checkMCAnswer(this.id);">Option 3</button>
         <button id="questionOption4">Option 4</button>
         <button id="questionOption5">Option 5</button>
     
-        <progress id="progressBar" ></progress>
     
+    
+        <progress value = "0" max = "10" id="progressBar" ></progress>
     
         
         <progress value="0" max="100" id="uploader">0%</progress>
-        <input type = "file" value = "upload"   id = "fileButton" />
-        <button id="showPic"> show pic </button>
+    
+    
+        <!--<label for = "fileButton" class = "btn">Upload Profile Pic</label>
+        <!--<input id = "fileButton" style = "visibility: hidden;" type = "file">
+        <!--<input type = "file" value = "upload"   id = "fileButton" />-->
+    
+    
+        <button style="display:block;width:120px; height:50px;" onclick="document.getElementById('fileButton').click()" id= "fileButtonHolder">Upload Profile Pic</button>
+        <input type='file' id="fileButton" style="display:none">
+    
+    
+        <!--<button id="showPic"> show pic </button>-->
+    
+    
         <img id="img" src="chase.jpg" height="420" width="420">
     
 
     <!--<button id = "makeButton"> Add Button </button> -->
 
     <script src="./tribalcouncil.js"></script>
+    
+    
 </body>
 
 </html>
