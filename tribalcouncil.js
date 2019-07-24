@@ -61,7 +61,7 @@ var roomSize = 0;
 var localPlayerName;
 
 //USERS PLAYERNUMBER
-var localPlayerNumber;
+var localPlayerNumber = 0;
 
 //USERS SCORE
 var playerScore = 0;
@@ -107,6 +107,8 @@ var docRefR;
 //          ...this function also unblocks a text entry and button to collect responses
 //var docRef1;
 
+var playersInRoom;
+
 joinRoom.addEventListener("click", function(){
     const roomToSave = roomID.value;
     const playerToSave = playerName.value;
@@ -114,23 +116,44 @@ joinRoom.addEventListener("click", function(){
 
     window.playerRoom = roomToSave;
     
-    docRefR = firestore.collection("PageNumber").doc(window.playerRoom);
+    docRefR = firestore.collection("RoomData").doc(window.playerRoom);
+    
     
 
-    window.localPlayerNumber = roomSize;
-    
+//    window.localPlayerNumber = roomSize;
+    //roomSize++;
     console.log("ROOM SETUP AS # " + roomToSave);
-
-
+    
+    
+    firestore.collection("RoomData").doc(roomToSave).get().then(function(doc){
+            if(doc.exists){
+                const roomData = doc.data();
+             
+                playersInRoom = roomData.numberOfPlayers;
+                
+            }else{
+                console.log("no such");
+            }
+        }).catch(function(error){
+            console.log("error", error);
+        });
+    
+        
+     //window.localPlayerNumber = playersInRoom;
+    
+//SETTING PLAYER DATA
     firestore.collection(roomToSave).doc(playerToSave).set({
         playerName: playerToSave,
-        playerNumber: roomSize,
+        playerNumber: localPlayerNumber,
         roomNumber: roomToSave,
         score: 0.0
     }).then(function(){
         //SAVE THE COOKIE!!!
         //create a cookie
         //document.cookie = playerToSave;
+        
+//        localPlayerNumber = roomSize;
+//        roomSize += 1;
         
         localPlayerName = playerToSave;
         
@@ -166,20 +189,27 @@ joinRoom.addEventListener("click", function(){
          //CHANGING PAGE NUMBER IF LAST PLAYER Joins
             firestore.collection(roomToSave).get().then(res => {
             console.log(res.size);
-            if(res.size ==  "5"){
+            if(res.size ==  playersInRoom){
                 //CHANGE CURRENT PAGE NUMBER
                 
                 //nextPage();
                 window.currentPage += 1;
                 
-                 docRefR.set({
+                 docRefR.update({
                         pageNumber: 1
                     }).catch(function(error){
                         console.error("got an error", error);
                     });
             }else{
                 console.log("room size = " + res.size);
+                window.currentPage +=1;
             }
+                //SAVING PLAYER NUMBER
+                localPlayerNumber = res.size;
+                
+                //CREATING RANDOM ARRAY OF ROOM SIZE LENGTH
+                
+                
             });
 
 
@@ -476,6 +506,72 @@ function checkMCAnswer(buttonID){
 }
 
 
+
+
+
+//=============================================T/F QUESTIONS===================================//
+
+// Get 5 random T/F questions and assign each one to a player 1-5
+//function createTFQuestionArray(){
+//    
+//}
+
+
+function getTFQuestionforPlayer(){
+    
+   
+    //t document of localPlayerNumber
+    questionOutput.style.display = "block";
+    //get element by ID and show T/F buttons
+    const trueButton = document.getElementById("true");
+    const falseButton = document.getElementById("false");
+    
+    trueButton.style.display = "block";
+    falseButton.style.display = "block";
+    
+    var tfQuestion = (("tf") + (window.localPlayerNumber).toString());
+    
+    
+     console.log("THE DOCUMENT ITS TRYING TO PULL ISS   " + tfQuestion);
+    
+    //use shuffled array and playernumber to give each player a different TF Question
+    firestore.collection("questions").doc(tfQuestion).get().then(function(doc){
+            if(doc.exists){
+                const qData = doc.data();
+                
+                questionOutput.innerText = qData.question;
+                
+            //save question answer
+                
+            }else{
+                console.log("no such");
+            }
+        }).catch(function(error){
+            console.log("error", error);
+        });
+}
+
+
+var data;
+var RQA;
+function getRandomQuestionArray(numberOfPlayers){
+    data = [];
+    for(var i = 0; i<roomSize; i++){
+        
+        data.push(i);
+        
+    }
+    
+    RQA = shuffle(data);
+    
+}
+
+function shuffle(o) {
+    for(var j, x, i = o.length; i; j = parseInt(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+};
+
+
 //======================================PLAYER SCORE=============================================
 var changePlayerScoreBool = false;;
 
@@ -602,8 +698,10 @@ function setupQuestion(){
                 var qo1 = document.getElementById("questionOption1");
                 var qo2 = document.getElementById("questionOption2");
                 var qo3 = document.getElementById("questionOption3");
-                var qo4 = document.getElementById("questionOption4");
-                var qo5 = document.getElementById("questionOption5");
+    
+    
+                var qo4 = document.getElementById("true");
+                var qo5 = document.getElementById("false");
     
                 var fb = document.getElementById("fileButtonHolder");
                 var upb = document.getElementById("uploader");
@@ -653,8 +751,10 @@ function clearPage(){
                 var qo1 = document.getElementById("questionOption1");
                 var qo2 = document.getElementById("questionOption2");
                 var qo3 = document.getElementById("questionOption3");
-                var qo4 = document.getElementById("questionOption4");
-                var qo5 = document.getElementById("questionOption5");
+    
+    
+                var qo4 = document.getElementById("true");
+                var qo5 = document.getElementById("false");
     
 
                 //hiding it all to start with
@@ -673,6 +773,7 @@ function clearPage(){
 //================================END GAME / SHOW LEADERBOARDS ==============================
 
 function endGame(){
+    //window.location.href = "./mainscreen.html";
     window.location.href = "./mainscreen.html";
 }
 //
@@ -692,12 +793,15 @@ setupQuestion();
 //NEXT PAGE FUNCTION
 function nextPage(){
   
-    currentPage += 1;
+    console.log("WHAT IS THE CURRENT PAGE FOR THIS PLAYER " + window.currentPage);
+    console.log("WHAT IS THE LOCAL PLAYER NAMEEEE " + window.localPlayerName);
+    
+    window.currentPage += 1;
     
     
-    console.log("CHANGING CURRENT PAGE HEREEE TO " + currentPage);
-        firestore.collection("PageNumber").doc(window.playerRoom).update({
-                        pageNumber: currentPage
+    console.log("CHANGING CURRENT PAGE HEREEE TO " + window.currentPage);
+        firestore.collection("RoomData").doc(window.playerRoom).update({
+                        pageNumber: window.currentPage
                     }).catch(function(error){
                         console.error("got an error", error);
                     });
@@ -764,52 +868,49 @@ function updateScreen(doc){
             startTimer("9");
             
         }
-        else if(myData.pageNumber == 2){
-            //HIDE PIC STUFF
-            fileButton.style.display = "none";
-            fileButtonHolder.style.display = "none";
-        
-            uploader.style.display = "none";
-            //RESET TIMER
-            document.getElementById("progressBar").value = 0;
-
-            getMCQuestion("2");
-            
-            startTimer("10");
-            //getResponseQuestion();
-            //setTimeout(checkResponseAnswer, 12000);
-    
-        }
-        else if(myData.pageNumber == 3){
-            document.getElementById("progressBar").value = 0;
-            
-            
-            getMCQuestion("22");
-            
-            startTimer("10");
-            
-            
-    }
-          else if(myData.pageNumber == 4){
-              
-              
-              endGame();
-            
+//        else if(myData.pageNumber == 2){
+//            //HIDE PIC STUFF
+//            fileButton.style.display = "none";
+//            fileButtonHolder.style.display = "none";
+//        
+//            uploader.style.display = "none";
+//            //RESET TIMER
 //            document.getElementById("progressBar").value = 0;
-//              
-//            getMCQuestion("4");
+//
+//            getMCQuestion("2");
 //            
 //            startTimer("10");
+//            //getResponseQuestion();
+//            //setTimeout(checkResponseAnswer, 12000);
+//    
+//        }
+//        else if(myData.pageNumber == 3){
+//            document.getElementById("progressBar").value = 0;
+//            
+//            
+//            getMCQuestion("22");
+//            
+//            startTimer("10");
+//            
+//            
+//    }
+          else if(myData.pageNumber == 2){
+              
+              //getRandomQuestionArray(roomSize);
+              
+              getTFQuestionforPlayer();
 
             
     }
-          else if(myData.pageNumber == 5){
+          else if(myData.pageNumber == 3){
             
-            document.getElementById("progressBar").value = 0;
-
-            getMCQuestion("5");
-            
-            startTimer("10");
+//            document.getElementById("progressBar").value = 0;
+//
+//            getMCQuestion("5");
+//            
+//            startTimer("10");
+              
+              endGame();
     
             
     }
@@ -897,7 +998,7 @@ window.onbeforeunload = confirmExit;
 
 function confirmExit(){
     alert("confirm exit is being called");
-    firestore.collection("PageNumber").doc(playerRoom).update({
+    firestore.collection("RoomData").doc(playerRoom).update({
                         pageNumber: 0
                     }).catch(function(error){
                         console.error("got an error", error);

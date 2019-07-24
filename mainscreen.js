@@ -20,7 +20,12 @@ var roomNumber = document.getElementById("room");
 
 
 //REFERENCE TO SCORES
-docRefS = firestore.collection("11");
+
+//FINDOUT HOW TO FIND WHAT GAME TO DISPLAYYYYYYYY
+//===============================================
+
+
+docRefS = firestore.collection("12");
 
 //VAR for leader
 var currentLeaderScore = 0;
@@ -34,13 +39,13 @@ function showLeaderPic(path){
 
         var storage2Ref = storage2.ref();
     
-    console.log("PATH IS: " + path);
+    //console.log("PATH IS: " + path);
     
         // Get the download URL
         storage2Ref.child(path).getDownloadURL().then(function(url) {
           // Insert url into an <img> tag to "download"
             var test = url;
-            document.getElementById('img').src = test;
+            document.getElementById('winnerPic').src = test;
         }).catch(function(error) {
             console.log("didn't work ");
         });
@@ -65,57 +70,41 @@ function addPlayer(){
         });
 }
 
+//var test2;
+function showPlayers(path){
+  //var apath = path.toString();
+        var storage2 = firebase.storage();
 
-function showPlayers(){
-        docRefS.get().then(function(querySnapshot) {
-            querySnapshot.forEach(function(doc) {
-                const myData = doc.data();
-                // doc.data() is never undefined for query doc snapshots
-                console.log("something");
-                console.log("the players scores" + myData.playerName + "  " + myData.score);
-                console.log(doc.id, " => ", doc.data());
-                
-                // Create img element
-//                var playerPic = document.createElement("img");
-                // Get picture path
-                var path = myData.roomNumber + '/' + myData.playerName + '/' + myData.picFileName;
-                // attach pic to element
-                
-                
-                var storage2 = firebase.storage();
-
-                var storage2Ref = storage2.ref();
+        var storage2Ref = storage2.ref();
     
-                console.log("pathhhhhhhhh issssss " + path);
+    console.log("PATH ISSSSSSSSSSSSSSSSSSSSSSSSSSS: " + path);
     
-                // Get the download URL
-                storage2Ref.child(path).getDownloadURL().then(function(url) {
-                // Insert url into an <img> tag to "download"
-                    var test = url;
-                    var playerPic = document.createElement("img");
-                    document.getElementById('playerPic').src = test;
-                    
-                    console.log("SHOULD BE ADDING PIC");
-                    document.body.appendChild(playerPic);
-                }).catch(function(error) {
-                    console.log("didn't work ");
-                });
-                // Insert text
-                    //document.body.appendChild(playerPic);
-                // Append <p> to <body>
-                
-                
-            });
-        });
+        // Get the download URL
+        storage2Ref.child(path).getDownloadURL().then(function(url) {
+          // Insert url into an <img> tag to "download"
+            var test2 = url;
+            //var playerPict = document.createElement("img");
+            playerPict.src = test2;
+            var src = document.getElementById("body");
+            src.appendChild(playerPict);
+            //document.getElementById('playerPict').src = test2;
+            //document.body.appendChild(playerPict);
+        }).catch(function(error) {
+            console.log("didn't work ");
+        });    
 }
 
 function addPics(){
     var playerPictures = document.createElement("img");
-    document.getElementById('playerPictures').src = 'chase.jpg';
+    playerPictures.src = test2;
                     
     console.log("SHOULD BE ADDING PIC");
-    document.body.appendChild(playerPictures);
+    document.body.appendChild("playerPictures");
 }
+
+//var playerPict;
+
+
 
 
 // UPDATING SCREEN
@@ -126,9 +115,9 @@ getRealtimeUpdates = function () {
             querySnapshot.forEach(function(doc) {
                 const myData = doc.data();
                 // doc.data() is never undefined for query doc snapshots
-                console.log("something");
-                console.log("the players scores" + myData.playerName + "  " + myData.score);
-                console.log(doc.id, " => ", doc.data());
+                //console.log("something");
+                //console.log("the players scores" + myData.playerName + "  " + myData.score);
+                //console.log(doc.id, " => ", doc.data());
                 
                 if(myData.score > currentLeaderScore){
                     
@@ -138,14 +127,14 @@ getRealtimeUpdates = function () {
                     
                     var path = myData.roomNumber + '/' + myData.playerName + '/' + myData.picFileName;
                     showLeaderPic(path);
+                   
                 }
-                
                 
             });
         });
     
     //showPlayers();
-    addPics();   
+    //addPics();   
 
 }
 
